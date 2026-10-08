@@ -32,5 +32,18 @@ router.get('/:id', (req, res) => {
   });
 });
 
+// PATCH /api/pets/:id/status - Update adoption status
+router.patch('/:id/status', (req, res) => {
+  const { status } = req.body;
+  if (!status) {
+    return res.status(400).json({ error: 'status is required' });
+  }
+  Pet.updateStatus(req.params.id, status, (err, result) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (result.changes === 0) return res.status(404).json({ error: 'Pet not found' });
+    res.json({ message: 'Status updated successfully' });
+  });
+});
+
 module.exports = router;
 

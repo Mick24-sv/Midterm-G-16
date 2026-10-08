@@ -10,6 +10,7 @@ const createPetTable = () => {
       breed       TEXT,
       age         INTEGER,
       owner_id    INTEGER,
+      status      TEXT    NOT NULL DEFAULT 'available',
       created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -82,6 +83,18 @@ const Pet = {
   delete(id, callback) {
     const sql = `DELETE FROM pets WHERE id = ?`;
     db.run(sql, [id], function (err) {
+      callback(err, { changes: this?.changes });
+    });
+  },
+
+  // Update adoption status by ID
+  updateStatus(id, status, callback) {
+    const allowed = ['available', 'pending', 'adopted'];
+    if (!allowed.includes(status)) {
+      return callback(new Error(`Invalid status. Must be one of: ${allowed.join(', ')}`));
+    }
+    const sql = `UPDATE pets SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+    db.run(sql, [status, id], function (err) {
       callback(err, { changes: this?.changes });
     });
   },
