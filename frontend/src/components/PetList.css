@@ -1,0 +1,38 @@
+/* ── PetList ────────────────────────────────────────────────────── */
+
+.pet-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.pet-list__item {
+  display: contents; /* let the card itself be the grid item */
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.pet-list__empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text);
+}
+
+.pet-list__empty-icon {
+  font-size: 56px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.pet-list__empty h3 {
+  font-size: 22px;
+  color: var(--text-h);
+  margin: 0 0 8px;
+}
+
+.pet-list__empty p {
+  font-size: 15px;
+}
+

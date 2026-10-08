@@ -1,4 +1,5 @@
 const { Adoption } = require('../models/Adoption');
+const { Pet }      = require('../models/Pet');
 
 // POST /api/adoptions or /api/adoptions/request
 const createAdoptionRequest = (req, res) => {
@@ -12,15 +13,8 @@ const createAdoptionRequest = (req, res) => {
     });
   }
 
-  const adoptionData = {
-    pet_id,
-    adopter_id,
-    status: 'pending',
-    notes: notes || null,
-    adoption_date: adoption_date || null,
-  };
-
-  Adoption.create(adoptionData, (err, adoption) => {
+  // Check pet exists and is available before creating adoption
+  Pet.getById(pet_id, (err, pet) => {
     if (err) {
       return res.status(500).json({
         success: false,
@@ -29,10 +23,42 @@ const createAdoptionRequest = (req, res) => {
       });
     }
 
-    return res.status(201).json({
-      success: true,
-      message: 'Adoption request submitted successfully.',
-      data: adoption,
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pet not found.',
+      });
+    }
+
+    if (pet.status !== 'available') {
+      return res.status(400).json({
+        success: false,
+        message: `Pet is not available for adoption. Current status: ${pet.status}.`,
+      });
+    }
+
+    const adoptionData = {
+      pet_id,
+      adopter_id,
+      status: 'pending',
+      notes: notes || null,
+      adoption_date: adoption_date || null,
+    };
+
+    Adoption.create(adoptionData, (createErr, adoption) => {
+      if (createErr) {
+        return res.status(500).json({
+          success: false,
+          message: 'Internal server error.',
+          error: createErr.message,
+        });
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Adoption request submitted successfully.',
+        data: adoption,
+      });
     });
   });
 };
