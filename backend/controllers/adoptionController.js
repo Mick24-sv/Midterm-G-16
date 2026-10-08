@@ -235,6 +235,65 @@ const deleteAdoption = (req, res) => {
   });
 };
 
+// PUT / PATCH / POST /api/adoptions/:id/cancel
+const cancelAdoptionRequest = (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body || {};
+
+  Adoption.getById(id, (err, adoption) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error.',
+        error: err.message,
+      });
+    }
+
+    if (!adoption) {
+      return res.status(404).json({
+        success: false,
+        message: 'Adoption request not found.',
+      });
+    }
+
+    if (adoption.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Adoption request is already cancelled.',
+      });
+    }
+
+    if (adoption.status === 'approved') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot cancel an approved adoption request.',
+      });
+    }
+
+    const updatedNotes = reason
+      ? (adoption.notes ? `${adoption.notes} | Cancelled: ${reason}` : `Cancelled: ${reason}`)
+      : adoption.notes;
+
+    Adoption.update(id, { status: 'cancelled', notes: updatedNotes }, (updateErr) => {
+      if (updateErr) {
+        return res.status(500).json({
+          success: false,
+          message: 'Internal server error.',
+          error: updateErr.message,
+        });
+      }
+
+      Adoption.getById(id, (fetchErr, updatedAdoption) => {
+        return res.status(200).json({
+          success: true,
+          message: 'Adoption request cancelled successfully.',
+          data: updatedAdoption || { ...adoption, status: 'cancelled', notes: updatedNotes },
+        });
+      });
+    });
+  });
+};
+
 module.exports = {
   createAdoptionRequest,
   getAllAdoptions,
@@ -244,5 +303,6 @@ module.exports = {
   getAdoptionsByStatus,
   updateAdoption,
   deleteAdoption,
+  cancelAdoptionRequest,
 };
 

@@ -129,6 +129,19 @@ const Adoption = {
       callback(err, { changes: this?.changes });
     });
   },
+
+  // Cancel an adoption by ID
+  cancel(id, callback) {
+    const sql = `
+      UPDATE adoptions
+      SET status = 'cancelled',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    db.run(sql, [id], function (err) {
+      callback(err, { changes: this?.changes });
+    });
+  },
 };
 
 module.exports = { Adoption, createAdoptionTable };
