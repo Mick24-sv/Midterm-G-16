@@ -129,4 +129,33 @@ const loginAdopter = (req, res) => {
   });
 };
 
-module.exports = { registerAdopter, loginAdopter };
+// GET /api/adopters/me  (protected)
+const getProfile = (req, res) => {
+  const { id, email } = req.adopter;
+
+  Adopter.getById(id, (err, adopter) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error.',
+        error: err.message,
+      });
+    }
+
+    if (!adopter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Adopter not found.',
+      });
+    }
+
+    const { password: _, ...adopterData } = adopter;
+
+    return res.status(200).json({
+      success: true,
+      data: adopterData,
+    });
+  });
+};
+
+module.exports = { registerAdopter, loginAdopter, getProfile };
