@@ -1,11 +1,12 @@
 const { Adoption } = require('../models/Adoption');
+const { Adopter }  = require('../models/Adopter');
 const { Pet }      = require('../models/Pet');
 
 // POST /api/adoptions or /api/adoptions/request
 const createAdoptionRequest = (req, res) => {
   const { pet_id, adopter_id, notes, adoption_date } = req.body;
 
-  // Basic validation
+  // Basic required fields validation
   if (!pet_id || !adopter_id) {
     return res.status(400).json({
       success: false,
@@ -13,51 +14,110 @@ const createAdoptionRequest = (req, res) => {
     });
   }
 
-  // Check pet exists and is available before creating adoption
-  Pet.getById(pet_id, (err, pet) => {
-    if (err) {
+  // Positive integer ID validation
+  const parsedPetId = Number(pet_id);
+  const parsedAdopterId = Number(adopter_id);
+
+  if (!Number.isInteger(parsedPetId) || parsedPetId <= 0 || !Number.isInteger(parsedAdopterId) || parsedAdopterId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'pet_id and adopter_id must be valid positive integers.',
+    });
+  }
+
+  // Optional date format validation
+  if (adoption_date && isNaN(Date.parse(adoption_date))) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid adoption_date format.',
+    });
+  }
+
+  // Verify adopter exists
+  Adopter.getById(parsedAdopterId, (adopterErr, adopter) => {
+    if (adopterErr) {
       return res.status(500).json({
         success: false,
         message: 'Internal server error.',
-        error: err.message,
+        error: adopterErr.message,
       });
     }
 
-    if (!pet) {
+    if (!adopter) {
       return res.status(404).json({
         success: false,
-        message: 'Pet not found.',
+        message: 'Adopter not found.',
       });
     }
 
-    if (pet.status !== 'available') {
-      return res.status(400).json({
-        success: false,
-        message: `Pet is not available for adoption. Current status: ${pet.status}.`,
-      });
-    }
-
-    const adoptionData = {
-      pet_id,
-      adopter_id,
-      status: 'pending',
-      notes: notes || null,
-      adoption_date: adoption_date || null,
-    };
-
-    Adoption.create(adoptionData, (createErr, adoption) => {
-      if (createErr) {
+    // Verify pet exists and is available
+    Pet.getById(parsedPetId, (petErr, pet) => {
+      if (petErr) {
         return res.status(500).json({
           success: false,
           message: 'Internal server error.',
-          error: createErr.message,
+          error: petErr.message,
         });
       }
 
-      return res.status(201).json({
-        success: true,
-        message: 'Adoption request submitted successfully.',
-        data: adoption,
+      if (!pet) {
+        return res.status(404).json({
+          success: false,
+          message: 'Pet not found.',
+        });
+      }
+
+      if (pet.status && pet.status.toLowerCase() !== 'available') {
+        return res.status(400).json({
+          success: false,
+          message: `Pet is not available for adoption. Current status: ${pet.status}.`,
+        });
+      }
+
+      // Check for existing active adoption request for this pet by this adopter
+      Adoption.filter({ pet_id: parsedPetId, adopter_id: parsedAdopterId }, (checkErr, existingRequests) => {
+        if (checkErr) {
+          return res.status(500).json({
+            success: false,
+            message: 'Internal server error.',
+            error: checkErr.message,
+          });
+        }
+
+        const activeRequest = existingRequests && existingRequests.find(
+          (r) => r.status === 'pending' || r.status === 'approved'
+        );
+
+        if (activeRequest) {
+          return res.status(409).json({
+            success: false,
+            message: 'An active adoption request already exists for this pet and adopter.',
+          });
+        }
+
+        const adoptionData = {
+          pet_id: parsedPetId,
+          adopter_id: parsedAdopterId,
+          status: 'pending',
+          notes: notes || null,
+          adoption_date: adoption_date || null,
+        };
+
+        Adoption.create(adoptionData, (createErr, adoption) => {
+          if (createErr) {
+            return res.status(500).json({
+              success: false,
+              message: 'Internal server error.',
+              error: createErr.message,
+            });
+          }
+
+          return res.status(201).json({
+            success: true,
+            message: 'Adoption request submitted successfully.',
+            data: adoption,
+          });
+        });
       });
     });
   });
@@ -180,6 +240,23 @@ const getAdoptionsByStatus = (req, res) => {
 const updateAdoption = (req, res) => {
   const { id } = req.params;
   const { status, notes, adoption_date, pet_id, adopter_id } = req.body;
+
+  // Status validation
+  const allowedStatuses = ['pending', 'approved', 'rejected', 'cancelled'];
+  if (status && !allowedStatuses.includes(status.toLowerCase())) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid status. Allowed statuses are: ${allowedStatuses.join(', ')}.`,
+    });
+  }
+
+  // Date format validation
+  if (adoption_date && isNaN(Date.parse(adoption_date))) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid adoption_date format.',
+    });
+  }
 
   Adoption.getById(id, (err, existing) => {
     if (err) {
