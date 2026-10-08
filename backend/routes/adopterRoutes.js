@@ -1,13 +1,15 @@
-const express = require('express');
-const router  = express.Router();
+const express              = require('express');
+const router               = express.Router();
 
-const { registerAdopter, loginAdopter } = require('../controllers/adopterController');
+const { registerAdopter, loginAdopter, getProfile } = require('../controllers/adopterController');
+const { authenticate }     = require('../middleware/authMiddleware');
 
-// POST /api/adopters/register
+// Public routes
 router.post('/register', registerAdopter);
+router.post('/login',    loginAdopter);
 
-// POST /api/adopters/login
-router.post('/login', loginAdopter);
+// Protected routes (requires valid JWT)
+router.get('/me', authenticate, getProfile);
 
 module.exports = router;
 
