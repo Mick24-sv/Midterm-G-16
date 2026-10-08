@@ -43,6 +43,21 @@ const Pet = {
     db.all(sql, [], callback);
   },
 
+  // Search/filter pets by name, species, or breed
+  search({ name, species, breed }, callback) {
+    const conditions = [];
+    const params = [];
+
+    if (name)    { conditions.push(`name LIKE ?`);    params.push(`%${name}%`);    }
+    if (species) { conditions.push(`species LIKE ?`); params.push(`%${species}%`); }
+    if (breed)   { conditions.push(`breed LIKE ?`);   params.push(`%${breed}%`);   }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const sql = `SELECT * FROM pets ${where} ORDER BY created_at DESC`;
+
+    db.all(sql, params, callback);
+  },
+
   // Get a single pet by ID
   getById(id, callback) {
     const sql = `SELECT * FROM pets WHERE id = ?`;
