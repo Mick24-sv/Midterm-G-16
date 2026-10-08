@@ -69,6 +69,34 @@ const Adoption = {
     db.all(sql, [petId], callback);
   },
 
+  // Get adoptions by status
+  getByStatus(status, callback) {
+    const sql = `SELECT * FROM adoptions WHERE status = ? ORDER BY created_at DESC`;
+    db.all(sql, [status], callback);
+  },
+
+  // Filter adoptions by query parameters (status, adopter_id, pet_id)
+  filter(filters, callback) {
+    let sql = `SELECT * FROM adoptions WHERE 1=1`;
+    const params = [];
+
+    if (filters.status) {
+      sql += ` AND status = ?`;
+      params.push(filters.status);
+    }
+    if (filters.adopter_id) {
+      sql += ` AND adopter_id = ?`;
+      params.push(filters.adopter_id);
+    }
+    if (filters.pet_id) {
+      sql += ` AND pet_id = ?`;
+      params.push(filters.pet_id);
+    }
+
+    sql += ` ORDER BY created_at DESC`;
+    db.all(sql, params, callback);
+  },
+
   // Update an adoption by ID
   update(id, data, callback) {
     const sql = `

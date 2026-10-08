@@ -7,6 +7,7 @@ const {
   getAdoptionById,
   getAdoptionsByAdopter,
   getAdoptionsByPet,
+  getAdoptionsByStatus,
   updateAdoption,
   deleteAdoption,
 } = require('../controllers/adoptionController');
@@ -15,10 +16,11 @@ const {
 router.post('/', createAdoptionRequest);
 router.post('/request', createAdoptionRequest);
 
-// Get all adoption requests
+// Get all adoption requests (supports optional ?status=&adopter_id=&pet_id=)
 router.get('/', getAllAdoptions);
 
-// Get adoption requests by adopter or pet
+// Get adoption requests by status, adopter, or pet
+router.get('/status/:status', getAdoptionsByStatus);
 router.get('/adopter/:adopterId', getAdoptionsByAdopter);
 router.get('/pet/:petId', getAdoptionsByPet);
 

@@ -39,7 +39,9 @@ const createAdoptionRequest = (req, res) => {
 
 // GET /api/adoptions
 const getAllAdoptions = (req, res) => {
-  Adoption.getAll((err, adoptions) => {
+  const { status, adopter_id, pet_id } = req.query;
+
+  const handleResponse = (err, adoptions) => {
     if (err) {
       return res.status(500).json({
         success: false,
@@ -52,7 +54,13 @@ const getAllAdoptions = (req, res) => {
       success: true,
       data: adoptions,
     });
-  });
+  };
+
+  if (status || adopter_id || pet_id) {
+    Adoption.filter({ status, adopter_id, pet_id }, handleResponse);
+  } else {
+    Adoption.getAll(handleResponse);
+  }
 };
 
 // GET /api/adoptions/:id
@@ -107,6 +115,26 @@ const getAdoptionsByPet = (req, res) => {
   const { petId } = req.params;
 
   Adoption.getByPetId(petId, (err, adoptions) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error.',
+        error: err.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: adoptions,
+    });
+  });
+};
+
+// GET /api/adoptions/status/:status
+const getAdoptionsByStatus = (req, res) => {
+  const { status } = req.params;
+
+  Adoption.getByStatus(status, (err, adoptions) => {
     if (err) {
       return res.status(500).json({
         success: false,
@@ -213,6 +241,7 @@ module.exports = {
   getAdoptionById,
   getAdoptionsByAdopter,
   getAdoptionsByPet,
+  getAdoptionsByStatus,
   updateAdoption,
   deleteAdoption,
 };
