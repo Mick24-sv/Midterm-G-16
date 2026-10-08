@@ -160,12 +160,38 @@
   border: 1px solid var(--accent-border);
 }
 
-/* ── CTA button ────────────────────────────────────────────────── */
-.pet-card__cta {
+/* ── Action row ────────────────────────────────────────────────── */
+.pet-card__actions {
   margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* "View Details" — outlined secondary */
+.pet-card__details-btn {
+  flex: 1;
   padding: 10px 0;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-h);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.pet-card__details-btn:hover {
+  background: var(--meta-bg);
+  border-color: var(--accent-border);
+}
+
+/* "Adopt Me" — filled primary */
+.pet-card__cta {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -184,4 +210,3 @@
   color: var(--text);
   cursor: not-allowed;
 }
-

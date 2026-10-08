@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { MOCK_PETS } from '../data/pets';
-import type { PetFilters } from '../types/pet';
+import type { Pet, PetFilters } from '../types/pet';
 import PetFiltersBar from '../components/PetFilters';
 import PetList from '../components/PetList';
+import PetDetailModal from '../components/PetDetailModal';
 import './PetsPage.css';
 
 const DEFAULT_FILTERS: PetFilters = {
@@ -15,6 +16,7 @@ const DEFAULT_FILTERS: PetFilters = {
 
 export default function PetsPage() {
   const [filters, setFilters] = useState<PetFilters>(DEFAULT_FILTERS);
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
 
   const filtered = useMemo(() => {
     const q = filters.search.toLowerCase().trim();
@@ -52,9 +54,16 @@ export default function PetsPage() {
 
       {/* Listing */}
       <main className="pets-page__listing" aria-label="Pet listing">
-        <PetList pets={filtered} />
+        <PetList pets={filtered} onSelect={setSelectedPet} />
       </main>
+
+      {/* Detail modal — rendered when a pet is selected */}
+      {selectedPet && (
+        <PetDetailModal
+          pet={selectedPet}
+          onClose={() => setSelectedPet(null)}
+        />
+      )}
     </div>
   );
 }
-

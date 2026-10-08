@@ -4,6 +4,7 @@ import './PetCard.css';
 
 interface PetCardProps {
   pet: Pet;
+  onSelect: (pet: Pet) => void;
 }
 
 const SPECIES_EMOJI: Record<string, string> = {
@@ -20,7 +21,7 @@ const STATUS_LABEL: Record<string, string> = {
   adopted: 'Adopted',
 };
 
-export default function PetCard({ pet }: PetCardProps) {
+export default function PetCard({ pet, onSelect }: PetCardProps) {
   return (
     <article className={`pet-card pet-card--${pet.status}`}>
       <div className="pet-card__image-wrap">
@@ -75,14 +76,25 @@ export default function PetCard({ pet }: PetCardProps) {
           ))}
         </div>
 
-        <button
-          type="button"
-          className="pet-card__cta"
-          disabled={pet.status !== 'available'}
-          aria-label={`Adopt ${pet.name}`}
-        >
-          {pet.status === 'available' ? 'Adopt Me' : pet.status === 'pending' ? 'Pending' : 'Adopted'}
-        </button>
+        {/* Two-button row: details + adopt */}
+        <div className="pet-card__actions">
+          <button
+            type="button"
+            className="pet-card__details-btn"
+            onClick={() => onSelect(pet)}
+            aria-label={`View details for ${pet.name}`}
+          >
+            View Details
+          </button>
+          <button
+            type="button"
+            className="pet-card__cta"
+            disabled={pet.status !== 'available'}
+            aria-label={`Adopt ${pet.name}`}
+          >
+            {pet.status === 'available' ? 'Adopt Me' : pet.status === 'pending' ? 'Pending' : 'Adopted'}
+          </button>
+        </div>
       </div>
     </article>
   );
