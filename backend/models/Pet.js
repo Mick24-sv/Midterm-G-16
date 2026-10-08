@@ -73,3 +73,4 @@ const Pet = {
 };
 
 module.exports = { Pet, createPetTable };
+
