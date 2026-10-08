@@ -1,0 +1,212 @@
+/* ── PetCard ───────────────────────────────────────────────────── */
+
+.pet-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.25s, transform 0.25s;
+  position: relative;
+}
+
+.pet-card:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-3px);
+}
+
+/* adopted cards are visually muted */
+.pet-card--adopted {
+  opacity: 0.65;
+}
+
+/* ── Image ─────────────────────────────────────────────────────── */
+.pet-card__image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.pet-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.pet-card:hover .pet-card__image {
+  transform: scale(1.05);
+}
+
+/* ── Status badge ──────────────────────────────────────────────── */
+.pet-card__status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.pet-card__status--available {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pet-card__status--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pet-card__status--adopted {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ── Body ──────────────────────────────────────────────────────── */
+.pet-card__body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.pet-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pet-card__name {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.pet-card__gender {
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.pet-card__breed {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Meta row ──────────────────────────────────────────────────── */
+.pet-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pet-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--meta-bg);
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.pet-card__size {
+  text-transform: capitalize;
+}
+
+.meta-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+/* ── Description ───────────────────────────────────────────────── */
+.pet-card__description {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Tags ──────────────────────────────────────────────────────── */
+.pet-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pet-card__tag {
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 2px 9px;
+  background: var(--tag-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+/* ── Action row ────────────────────────────────────────────────── */
+.pet-card__actions {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* "View Details" — outlined secondary */
+.pet-card__details-btn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-h);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.pet-card__details-btn:hover {
+  background: var(--meta-bg);
+  border-color: var(--accent-border);
+}
+
+/* "Adopt Me" — filled primary */
+.pet-card__cta {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.pet-card__cta:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.pet-card__cta:disabled {
+  background: var(--border);
+  color: var(--text);
+  cursor: not-allowed;
+}
