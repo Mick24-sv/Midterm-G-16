@@ -10,6 +10,7 @@ const createAdopterTable = () => {
       email       TEXT    NOT NULL UNIQUE,
       phone       TEXT    NOT NULL,
       address     TEXT    NOT NULL,
+      password    TEXT    NOT NULL,
       created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -28,13 +29,19 @@ const Adopter = {
   // Create a new adopter
   create(data, callback) {
     const sql = `
-      INSERT INTO adopters (first_name, last_name, email, phone, address)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO adopters (first_name, last_name, email, phone, address, password)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
-    const params = [data.first_name, data.last_name, data.email, data.phone, data.address];
+    const params = [data.first_name, data.last_name, data.email, data.phone, data.address, data.password];
     db.run(sql, params, function (err) {
       callback(err, { id: this?.lastID, ...data });
     });
+  },
+
+  // Get a single adopter by email (used for login)
+  getByEmail(email, callback) {
+    const sql = `SELECT * FROM adopters WHERE email = ?`;
+    db.get(sql, [email], callback);
   },
 
   // Get all adopters
