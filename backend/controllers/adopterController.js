@@ -1,14 +1,19 @@
-const { Adopter } = require('../models/Adopter');
+const bcrypt        = require('bcryptjs');
+const jwt           = require('jsonwebtoken');
+const { Adopter }   = require('../models/Adopter');
+
+const JWT_SECRET    = process.env.JWT_SECRET || 'pet_adoption_secret_key';
+const SALT_ROUNDS   = 10;
 
 // POST /api/adopters/register
-const registerAdopter = (req, res) => {
-  const { first_name, last_name, email, phone, address } = req.body;
+const registerAdopter = async (req, res) => {
+  const { first_name, last_name, email, phone, address, password } = req.body;
 
   // Basic validation
-  if (!first_name || !last_name || !email || !phone || !address) {
+  if (!first_name || !last_name || !email || !phone || !address || !password) {
     return res.status(400).json({
       success: false,
-      message: 'All fields are required: first_name, last_name, email, phone, address.',
+      message: 'All fields are required: first_name, last_name, email, phone, address, password.',
     });
   }
 
@@ -21,15 +26,67 @@ const registerAdopter = (req, res) => {
     });
   }
 
-  Adopter.create({ first_name, last_name, email, phone, address }, (err, adopter) => {
-    if (err) {
-      // Handle duplicate email
-      if (err.message && err.message.includes('UNIQUE constraint failed')) {
-        return res.status(409).json({
-          success: false,
-          message: 'Email is already registered.',
+  // Password length check
+  if (password.length < 6) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 6 characters.',
+    });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    Adopter.create(
+      { first_name, last_name, email, phone, address, password: hashedPassword },
+      (err, adopter) => {
+        if (err) {
+          if (err.message && err.message.includes('UNIQUE constraint failed')) {
+            return res.status(409).json({
+              success: false,
+              message: 'Email is already registered.',
+            });
+          }
+          return res.status(500).json({
+            success: false,
+            message: 'Internal server error.',
+            error: err.message,
+          });
+        }
+
+        // Exclude password from response
+        const { password: _, ...adopterData } = adopter;
+
+        return res.status(201).json({
+          success: true,
+          message: 'Adopter registered successfully.',
+          data: adopterData,
         });
       }
+    );
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+      error: err.message,
+    });
+  }
+};
+
+// POST /api/adopters/login
+const loginAdopter = (req, res) => {
+  const { email, password } = req.body;
+
+  // Basic validation
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email and password are required.',
+    });
+  }
+
+  Adopter.getByEmail(email, async (err, adopter) => {
+    if (err) {
       return res.status(500).json({
         success: false,
         message: 'Internal server error.',
@@ -37,13 +94,39 @@ const registerAdopter = (req, res) => {
       });
     }
 
-    return res.status(201).json({
+    if (!adopter) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.',
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, adopter.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.',
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: adopter.id, email: adopter.email },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // Exclude password from response
+    const { password: _, ...adopterData } = adopter;
+
+    return res.status(200).json({
       success: true,
-      message: 'Adopter registered successfully.',
-      data: adopter,
+      message: 'Login successful.',
+      token,
+      data: adopterData,
     });
   });
 };
 
-module.exports = { registerAdopter };
-
+module.exports = { registerAdopter, loginAdopter };
