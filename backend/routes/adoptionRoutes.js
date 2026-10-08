@@ -10,6 +10,7 @@ const {
   getAdoptionsByStatus,
   updateAdoption,
   deleteAdoption,
+  cancelAdoptionRequest,
 } = require('../controllers/adoptionController');
 
 // Submit an adoption request
@@ -26,6 +27,11 @@ router.get('/pet/:petId', getAdoptionsByPet);
 
 // Get single adoption request by ID
 router.get('/:id', getAdoptionById);
+
+// Cancel an adoption request
+router.put('/:id/cancel', cancelAdoptionRequest);
+router.patch('/:id/cancel', cancelAdoptionRequest);
+router.post('/:id/cancel', cancelAdoptionRequest);
 
 // Update an adoption request
 router.put('/:id', updateAdoption);
