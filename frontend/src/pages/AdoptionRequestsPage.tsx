@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useFetch } from '../hooks/useFetch'
+import Spinner from '../components/Spinner'
+import AlertMessage from '../components/AlertMessage'
 import './AdoptionRequestsPage.css'
 
 interface Adopter {
@@ -13,80 +16,59 @@ interface Adopter {
   updated_at: string
 }
 
-type FetchStatus = 'loading' | 'success' | 'error'
-
 export default function AdoptionRequestsPage() {
-  const [adopters, setAdopters] = useState<Adopter[]>([])
-  const [filtered, setFiltered] = useState<Adopter[]>([])
-  const [status, setStatus] = useState<FetchStatus>('loading')
-  const [error, setError] = useState('')
+  const { data: adopters, loading, error, refetch } = useFetch<Adopter[]>(
+    'http://localhost:3000/adopters'
+  )
+
+  const [localAdopters, setLocalAdopters] = useState<Adopter[] | null>(null)
+  const list = localAdopters ?? adopters ?? []
+
+  // Sync localAdopters when fresh data arrives
+  useState(() => {
+    if (adopters) setLocalAdopters(adopters)
+  })
+
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    fetch('http://localhost:3000/adopters')
-      .then(res => {
-        if (!res.ok) throw new Error(`Server error: ${res.status}`)
-        return res.json() as Promise<Adopter[]>
-      })
-      .then(data => {
-        setAdopters(data)
-        setFiltered(data)
-        setStatus('success')
-      })
-      .catch(err => {
-        setError(err instanceof Error ? err.message : 'Failed to load requests.')
-        setStatus('error')
-      })
-  }, [])
-
-  // Client-side search filter
-  useEffect(() => {
-    const q = search.toLowerCase()
-    setFiltered(
-      adopters.filter(a =>
-        `${a.first_name} ${a.last_name} ${a.email} ${a.phone} ${a.address}`
-          .toLowerCase()
-          .includes(q)
-      )
-    )
-  }, [search, adopters])
+  const filtered = list.filter(a =>
+    `${a.first_name} ${a.last_name} ${a.email} ${a.phone} ${a.address}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  )
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-PH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      year: 'numeric', month: 'short', day: 'numeric',
     })
 
-  // ── Cancellation state ───────────────────────────────────────────────
+  // ── Cancellation ────────────────────────────────────────────────────
   const [confirmTarget, setConfirmTarget] = useState<Adopter | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState('')
 
-  const openConfirm = (adopter: Adopter) => {
-    setCancelError('')
-    setConfirmTarget(adopter)
-  }
-
-  const closeConfirm = () => {
-    if (cancelling) return
-    setConfirmTarget(null)
-    setCancelError('')
-  }
+  const openConfirm  = (a: Adopter) => { setCancelError(''); setConfirmTarget(a) }
+  const closeConfirm = () => { if (cancelling) return; setConfirmTarget(null); setCancelError('') }
 
   const handleCancel = async () => {
     if (!confirmTarget) return
     setCancelling(true)
     setCancelError('')
 
+    if (!navigator.onLine) {
+      setCancelError('You are offline. Please check your connection and try again.')
+      setCancelling(false)
+      return
+    }
+
     try {
       const res = await fetch(`http://localhost:3000/adopters/${confirmTarget.id}`, {
         method: 'DELETE',
       })
-      if (!res.ok) throw new Error(`Server error: ${res.status}`)
-
-      // Remove from state optimistically
-      setAdopters(prev => prev.filter(a => a.id !== confirmTarget.id))
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.message ?? `Server error (${res.status})`)
+      }
+      setLocalAdopters(prev => (prev ?? list).filter(a => a.id !== confirmTarget.id))
       setConfirmTarget(null)
     } catch (err) {
       setCancelError(err instanceof Error ? err.message : 'Cancellation failed.')
@@ -106,9 +88,7 @@ export default function AdoptionRequestsPage() {
             <p className="ar-subtitle">All registered adopters and their information.</p>
           </div>
         </div>
-        <Link to="/register" className="ar-new-btn">
-          + New Request
-        </Link>
+        <Link to="/register" className="ar-new-btn">+ New Request</Link>
       </div>
 
       {/* ── Search ──────────────────────────────────────────── */}
@@ -122,47 +102,47 @@ export default function AdoptionRequestsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             aria-label="Search adoption requests"
+            disabled={loading}
           />
         </div>
-        {status === 'success' && (
+        {!loading && !error && (
           <span className="ar-count">
-            {filtered.length} of {adopters.length} request{adopters.length !== 1 ? 's' : ''}
+            {filtered.length} of {list.length} request{list.length !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      {/* ── States ──────────────────────────────────────────── */}
-      {status === 'loading' && (
+      {/* ── Loading ──────────────────────────────────────────── */}
+      {loading && (
         <div className="ar-state">
-          <div className="ar-spinner" aria-label="Loading…" />
-          <p>Loading adoption requests…</p>
+          <Spinner label="Loading adoption requests…" size="lg" />
         </div>
       )}
 
-      {status === 'error' && (
-        <div className="ar-state ar-state--error" role="alert">
-          <span aria-hidden="true">⚠️</span>
-          <p>{error}</p>
-          <button className="ar-retry" onClick={() => window.location.reload()}>
-            Retry
-          </button>
+      {/* ── Error ────────────────────────────────────────────── */}
+      {!loading && error && (
+        <div className="ar-state ar-state--error">
+          <AlertMessage
+            type="error"
+            message={error}
+          />
+          <button className="ar-retry" onClick={refetch}>Retry</button>
         </div>
       )}
 
-      {status === 'success' && filtered.length === 0 && (
+      {/* ── Empty ────────────────────────────────────────────── */}
+      {!loading && !error && filtered.length === 0 && (
         <div className="ar-state">
           <span aria-hidden="true" style={{ fontSize: 40 }}>🐕</span>
           <p>{search ? 'No results match your search.' : 'No adoption requests yet.'}</p>
           {!search && (
-            <Link to="/register" className="ar-retry">
-              Register First Adopter
-            </Link>
+            <Link to="/register" className="ar-retry">Register First Adopter</Link>
           )}
         </div>
       )}
 
       {/* ── Table ───────────────────────────────────────────── */}
-      {status === 'success' && filtered.length > 0 && (
+      {!loading && !error && filtered.length > 0 && (
         <div className="ar-table-wrap">
           <table className="ar-table">
             <thead>
@@ -188,16 +168,12 @@ export default function AdoptionRequestsPage() {
                     {a.first_name} {a.last_name}
                   </td>
                   <td>
-                    <a href={`mailto:${a.email}`} className="ar-email-link">
-                      {a.email}
-                    </a>
+                    <a href={`mailto:${a.email}`} className="ar-email-link">{a.email}</a>
                   </td>
                   <td>{a.phone}</td>
                   <td className="ar-address">{a.address}</td>
                   <td className="ar-date">{formatDate(a.created_at)}</td>
-                  <td>
-                    <span className="ar-badge ar-badge--pending">Pending</span>
-                  </td>
+                  <td><span className="ar-badge ar-badge--pending">Pending</span></td>
                   <td>
                     <button
                       className="ar-cancel-btn"
@@ -233,22 +209,20 @@ export default function AdoptionRequestsPage() {
             </p>
 
             {cancelError && (
-              <p className="ar-modal-error" role="alert">{cancelError}</p>
+              <div style={{ marginBottom: 16 }}>
+                <AlertMessage
+                  type="error"
+                  message={cancelError}
+                  onDismiss={() => setCancelError('')}
+                />
+              </div>
             )}
 
             <div className="ar-modal-actions">
-              <button
-                className="ar-modal-keep"
-                onClick={closeConfirm}
-                disabled={cancelling}
-              >
+              <button className="ar-modal-keep" onClick={closeConfirm} disabled={cancelling}>
                 Keep Request
               </button>
-              <button
-                className="ar-modal-confirm"
-                onClick={handleCancel}
-                disabled={cancelling}
-              >
+              <button className="ar-modal-confirm" onClick={handleCancel} disabled={cancelling}>
                 {cancelling ? 'Cancelling…' : 'Yes, Cancel'}
               </button>
             </div>

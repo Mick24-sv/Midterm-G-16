@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
+import AlertMessage from '../components/AlertMessage'
 import './LoginPage.css'
 
 interface LoginForm {
@@ -25,6 +26,12 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setStatus({ type: 'loading', message: '' })
+
+    // Offline guard
+    if (!navigator.onLine) {
+      setStatus({ type: 'error', message: 'You are offline. Please check your connection.' })
+      return
+    }
 
     try {
       const response = await fetch('http://localhost:3000/auth/login', {
@@ -109,9 +116,11 @@ export default function LoginPage() {
           </div>
 
           {status.type === 'error' && (
-            <div className="lp-alert lp-alert--error" role="alert">
-              {status.message}
-            </div>
+            <AlertMessage
+              type="error"
+              message={status.message}
+              onDismiss={() => setStatus({ type: 'idle', message: '' })}
+            />
           )}
 
           <button

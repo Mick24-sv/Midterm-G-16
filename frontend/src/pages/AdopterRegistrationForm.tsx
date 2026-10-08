@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ChangeEvent } from 'react'
+import AlertMessage from '../components/AlertMessage'
 import './AdopterRegistrationForm.css'
 
 interface AdopterFormData {
@@ -34,6 +35,12 @@ export default function AdopterRegistrationForm() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setStatus({ type: 'loading', message: '' })
+
+    // Offline guard
+    if (!navigator.onLine) {
+      setStatus({ type: 'error', message: 'You are offline. Please check your connection.' })
+      return
+    }
 
     try {
       const response = await fetch('http://localhost:3000/adopters', {
@@ -138,9 +145,15 @@ export default function AdopterRegistrationForm() {
           </div>
 
           {status.type !== 'idle' && status.message && (
-            <div className={`af-alert af-alert--${status.type}`} role="alert">
-              {status.message}
-            </div>
+            <AlertMessage
+              type={status.type === 'loading' ? 'info' : status.type}
+              message={status.message}
+              onDismiss={
+                status.type !== 'loading'
+                  ? () => setStatus({ type: 'idle', message: '' })
+                  : undefined
+              }
+            />
           )}
 
           <button
