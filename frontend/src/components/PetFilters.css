@@ -7,6 +7,85 @@
   padding: 20px 0 28px;
 }
 
+/* ── Species pill bar ───────────────────────────────────────────── */
+.pet-filters__species {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Individual pill button */
+.species-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s,
+    box-shadow 0.18s;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.species-pill:hover:not(.species-pill--active) {
+  border-color: var(--accent-border);
+  color: var(--text-h);
+  background: var(--meta-bg);
+}
+
+/* Active / selected pill */
+.species-pill--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--accent-bg);
+}
+
+.species-pill__emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.species-pill__label {
+  font-weight: 600;
+}
+
+/* Count badge */
+.species-pill__count {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.08);
+  line-height: 1.6;
+}
+
+.species-pill--active .species-pill__count {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Scrollable on very small screens */
+@media (max-width: 480px) {
+  .pet-filters__species {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .pet-filters__species::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Search */
 .pet-filters__search-wrap {
   position: relative;

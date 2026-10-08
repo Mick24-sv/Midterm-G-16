@@ -46,6 +46,7 @@ export default function PetsPage() {
       <section className="pets-page__filters" aria-label="Filter pets">
         <PetFiltersBar
           filters={filters}
+          allPets={MOCK_PETS}
           totalCount={MOCK_PETS.length}
           filteredCount={filtered.length}
           onChange={setFilters}
