@@ -58,6 +58,43 @@ export default function AdoptionRequestsPage() {
       day: 'numeric',
     })
 
+  // ── Cancellation state ───────────────────────────────────────────────
+  const [confirmTarget, setConfirmTarget] = useState<Adopter | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState('')
+
+  const openConfirm = (adopter: Adopter) => {
+    setCancelError('')
+    setConfirmTarget(adopter)
+  }
+
+  const closeConfirm = () => {
+    if (cancelling) return
+    setConfirmTarget(null)
+    setCancelError('')
+  }
+
+  const handleCancel = async () => {
+    if (!confirmTarget) return
+    setCancelling(true)
+    setCancelError('')
+
+    try {
+      const res = await fetch(`http://localhost:3000/adopters/${confirmTarget.id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+
+      // Remove from state optimistically
+      setAdopters(prev => prev.filter(a => a.id !== confirmTarget.id))
+      setConfirmTarget(null)
+    } catch (err) {
+      setCancelError(err instanceof Error ? err.message : 'Cancellation failed.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   return (
     <div className="ar-wrapper">
       {/* ── Page Header ─────────────────────────────────────── */}
@@ -137,6 +174,7 @@ export default function AdoptionRequestsPage() {
                 <th>Address</th>
                 <th>Registered</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -160,13 +198,63 @@ export default function AdoptionRequestsPage() {
                   <td>
                     <span className="ar-badge ar-badge--pending">Pending</span>
                   </td>
+                  <td>
+                    <button
+                      className="ar-cancel-btn"
+                      onClick={() => openConfirm(a)}
+                      aria-label={`Cancel request for ${a.first_name} ${a.last_name}`}
+                    >
+                      Cancel
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* ── Confirm Modal ────────────────────────────────────── */}
+      {confirmTarget && (
+        <div
+          className="ar-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          onClick={e => { if (e.target === e.currentTarget) closeConfirm() }}
+        >
+          <div className="ar-modal">
+            <div className="ar-modal-icon" aria-hidden="true">⚠️</div>
+            <h2 id="confirm-title" className="ar-modal-title">Cancel Adoption Request?</h2>
+            <p className="ar-modal-body">
+              You are about to cancel the request for{' '}
+              <strong>{confirmTarget.first_name} {confirmTarget.last_name}</strong>.
+              This action cannot be undone.
+            </p>
+
+            {cancelError && (
+              <p className="ar-modal-error" role="alert">{cancelError}</p>
+            )}
+
+            <div className="ar-modal-actions">
+              <button
+                className="ar-modal-keep"
+                onClick={closeConfirm}
+                disabled={cancelling}
+              >
+                Keep Request
+              </button>
+              <button
+                className="ar-modal-confirm"
+                onClick={handleCancel}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Cancelling…' : 'Yes, Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-

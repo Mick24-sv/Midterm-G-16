@@ -306,3 +306,166 @@
   .ar-badge--rejected { color: #f87171; }
 }
 
+
+/* ── Cancel Button ──────────────────────────────────────────────────── */
+.ar-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.6);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .ar-cancel-btn {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.35);
+    background: rgba(248, 113, 113, 0.08);
+
+    &:hover {
+      background: rgba(248, 113, 113, 0.15);
+      border-color: rgba(248, 113, 113, 0.55);
+    }
+  }
+}
+
+/* ── Confirm Modal Overlay ──────────────────────────────────────────── */
+.ar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+  animation: ar-fade-in 0.15s ease;
+}
+
+@keyframes ar-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal Card ─────────────────────────────────────────────────────── */
+.ar-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 32px 28px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  text-align: center;
+  animation: ar-slide-up 0.2s ease;
+}
+
+@keyframes ar-slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.ar-modal-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.ar-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 10px;
+  letter-spacing: -0.3px;
+}
+
+.ar-modal-body {
+  font-size: 15px;
+  color: var(--text);
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+
+.ar-modal-error {
+  font-size: 13px;
+  font-weight: 500;
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0 0 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ar-modal-error { color: #f87171; }
+}
+
+/* ── Modal Actions ──────────────────────────────────────────────────── */
+.ar-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.ar-modal-keep,
+.ar-modal-confirm {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+.ar-modal-keep {
+  background: var(--code-bg);
+  color: var(--text-h);
+  border: 1.5px solid var(--border);
+
+  &:hover:not(:disabled) { opacity: 0.8; }
+  &:focus-visible { outline: 2px solid var(--accent); }
+}
+
+.ar-modal-confirm {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+
+  &:hover:not(:disabled) { opacity: 0.88; }
+  &:focus-visible { outline: 2px solid #dc2626; }
+}
