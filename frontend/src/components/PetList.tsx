@@ -5,9 +5,10 @@ import './PetList.css';
 interface PetListProps {
   pets: Pet[];
   onSelect: (pet: Pet) => void;
+  onAdopt: (pet: Pet) => void;
 }
 
-export default function PetList({ pets, onSelect }: PetListProps) {
+export default function PetList({ pets, onSelect, onAdopt }: PetListProps) {
   if (pets.length === 0) {
     return (
       <div className="pet-list__empty">
@@ -22,7 +23,7 @@ export default function PetList({ pets, onSelect }: PetListProps) {
     <ul className="pet-list" role="list" aria-label="Available pets">
       {pets.map((pet) => (
         <li key={pet.id} className="pet-list__item">
-          <PetCard pet={pet} onSelect={onSelect} />
+          <PetCard pet={pet} onSelect={onSelect} onAdopt={onAdopt} />
         </li>
       ))}
     </ul>

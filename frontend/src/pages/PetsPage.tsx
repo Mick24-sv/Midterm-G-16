@@ -4,6 +4,7 @@ import type { Pet, PetFilters } from '../types/pet';
 import PetFiltersBar from '../components/PetFilters';
 import PetList from '../components/PetList';
 import PetDetailModal from '../components/PetDetailModal';
+import AdoptionModal from '../components/AdoptionModal';
 import './PetsPage.css';
 
 const DEFAULT_FILTERS: PetFilters = {
@@ -17,6 +18,12 @@ const DEFAULT_FILTERS: PetFilters = {
 export default function PetsPage() {
   const [filters, setFilters] = useState<PetFilters>(DEFAULT_FILTERS);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [adoptingPet, setAdoptingPet] = useState<Pet | null>(null);
+
+  const handleStartAdopt = (pet: Pet) => {
+    setSelectedPet(null);
+    setAdoptingPet(pet);
+  };
 
   const filtered = useMemo(() => {
     const q = filters.search.toLowerCase().trim();
@@ -55,7 +62,7 @@ export default function PetsPage() {
 
       {/* Listing */}
       <main className="pets-page__listing" aria-label="Pet listing">
-        <PetList pets={filtered} onSelect={setSelectedPet} />
+        <PetList pets={filtered} onSelect={setSelectedPet} onAdopt={handleStartAdopt} />
       </main>
 
       {/* Detail modal — rendered when a pet is selected */}
@@ -63,6 +70,15 @@ export default function PetsPage() {
         <PetDetailModal
           pet={selectedPet}
           onClose={() => setSelectedPet(null)}
+          onAdopt={handleStartAdopt}
+        />
+      )}
+
+      {/* Adoption modal — rendered when user clicks Adopt */}
+      {adoptingPet && (
+        <AdoptionModal
+          pet={adoptingPet}
+          onClose={() => setAdoptingPet(null)}
         />
       )}
     </div>

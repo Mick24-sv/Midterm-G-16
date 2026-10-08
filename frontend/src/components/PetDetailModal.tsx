@@ -6,6 +6,7 @@ import './PetDetailModal.css';
 interface PetDetailModalProps {
   pet: Pet;
   onClose: () => void;
+  onAdopt: (pet: Pet) => void;
 }
 
 const SPECIES_EMOJI: Record<string, string> = {
@@ -38,7 +39,7 @@ function DetailRow({ icon, label, value }: DetailRowProps) {
   );
 }
 
-export default function PetDetailModal({ pet, onClose }: PetDetailModalProps) {
+export default function PetDetailModal({ pet, onClose, onAdopt }: PetDetailModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   /* Open the native <dialog> and focus it */
@@ -183,6 +184,7 @@ export default function PetDetailModal({ pet, onClose }: PetDetailModalProps) {
                 type="button"
                 className="pdm__adopt-btn"
                 disabled={pet.status !== 'available'}
+                onClick={() => onAdopt(pet)}
                 aria-label={`Adopt ${pet.name}`}
               >
                 {pet.status === 'available'

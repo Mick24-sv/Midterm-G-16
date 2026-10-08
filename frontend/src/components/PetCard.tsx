@@ -5,6 +5,7 @@ import './PetCard.css';
 interface PetCardProps {
   pet: Pet;
   onSelect: (pet: Pet) => void;
+  onAdopt: (pet: Pet) => void;
 }
 
 const SPECIES_EMOJI: Record<string, string> = {
@@ -21,7 +22,7 @@ const STATUS_LABEL: Record<string, string> = {
   adopted: 'Adopted',
 };
 
-export default function PetCard({ pet, onSelect }: PetCardProps) {
+export default function PetCard({ pet, onSelect, onAdopt }: PetCardProps) {
   return (
     <article className={`pet-card pet-card--${pet.status}`}>
       <div className="pet-card__image-wrap">
@@ -90,6 +91,7 @@ export default function PetCard({ pet, onSelect }: PetCardProps) {
             type="button"
             className="pet-card__cta"
             disabled={pet.status !== 'available'}
+            onClick={() => onAdopt(pet)}
             aria-label={`Adopt ${pet.name}`}
           >
             {pet.status === 'available' ? 'Adopt Me' : pet.status === 'pending' ? 'Pending' : 'Adopted'}
